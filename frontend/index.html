@@ -1,0 +1,487 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESG Auditor â€” India</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #22263a; --border: #2e3250;
+      --text: #e2e8f0; --muted: #8892a4; --accent: #6366f1; --accent-hover: #818cf8;
+      --red: #ef4444; --orange: #f97316; --green: #22c55e; --gray: #64748b;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; padding: 2rem 1rem; }
+    header { text-align: center; margin-bottom: 2.5rem; }
+    header h1 { font-size: 2rem; font-weight: 700; color: #818cf8; }
+    header p { color: var(--muted); margin-top: 0.4rem; font-size: 0.95rem; }
+    .india-badge { display: inline-flex; align-items: center; gap: 0.4rem; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; padding: 0.25rem 0.75rem; font-size: 0.8rem; color: var(--accent-hover); margin-top: 0.6rem; }
+    .container { max-width: 860px; margin: 0 auto; }
+    .search-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; gap: 0.75rem; align-items: center; }
+    .search-card input { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 1rem; color: var(--text); font-size: 1rem; outline: none; }
+    .search-card input:focus { border-color: var(--accent); }
+    .search-card input::placeholder { color: var(--muted); }
+    .btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 0.65rem 1.4rem; font-size: 1rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status { margin-top: 1.5rem; text-align: center; }
+    .spinner { display: inline-block; width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 0.75rem; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { color: var(--muted); font-size: 0.95rem; }
+    .error-box { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.35); border-radius: 10px; padding: 1rem 1.25rem; color: #fca5a5; font-size: 0.95rem; }
+
+    /* â”€â”€ State Picker â”€â”€ */
+    #statePicker { display: none; margin-top: 1.25rem; }
+    .state-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; }
+    .state-box-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1rem; }
+    .state-box-title { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .state-box-sub { font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
+    #stateList { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+    .state-btn {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.45rem 1rem; font-size: 0.88rem; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .state-btn:hover { border-color: var(--accent); background: rgba(99,102,241,0.08); }
+    .state-btn.selected { border-color: var(--accent); background: rgba(99,102,241,0.18); color: #c7d2fe; font-weight: 600; }
+    .state-city { font-size: 0.72rem; color: var(--muted); display: block; margin-top: 1px; }
+    .audit-state-btn { margin-top: 1.25rem; width: 100%; padding: 0.75rem; font-size: 1rem; }
+
+    /* â”€â”€ Report â”€â”€ */
+    #report { margin-top: 2rem; display: none; }
+    .back-link { display: inline-flex; align-items: center; gap: 0.4rem; color: var(--muted); font-size: 0.85rem; cursor: pointer; margin-bottom: 1rem; background: none; border: none; padding: 0; }
+    .back-link:hover { color: var(--text); }
+    .report-header { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .score-circle { width: 100px; height: 100px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: 4px solid currentColor; }
+    .score-num { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .score-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; opacity: 0.8; }
+    .score-red { color: var(--red); } .score-orange { color: var(--orange); } .score-green { color: var(--green); } .score-gray { color: var(--gray); }
+    .report-meta { flex: 1; min-width: 200px; }
+    .report-meta h2 { font-size: 1.4rem; font-weight: 700; }
+    .report-state-tag { display: inline-flex; align-items: center; gap: 0.3rem; background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); border-radius: 20px; padding: 0.2rem 0.65rem; font-size: 0.78rem; color: var(--accent-hover); margin-top: 0.4rem; }
+    .timestamp { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
+    .meta-pills { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+    .pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 0.25rem 0.75rem; font-size: 0.8rem; color: var(--muted); }
+    .pill strong { color: var(--text); }
+    .section-title { font-size: 1rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; }
+    .risk-list { display: flex; flex-direction: column; gap: 1rem; }
+    .risk-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem; }
+    .risk-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+    .badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 0.2rem 0.55rem; font-size: 0.72rem; font-weight: 600; color: var(--accent-hover); white-space: nowrap; flex-shrink: 0; }
+    .claim-text { font-size: 0.95rem; font-weight: 600; color: var(--text); flex: 1; }
+    .evidence-text { font-size: 0.88rem; color: var(--muted); margin-bottom: 0.85rem; line-height: 1.5; }
+    .confidence-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }
+    .confidence-label { font-size: 0.78rem; color: var(--muted); white-space: nowrap; min-width: 120px; }
+    .bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #6366f1, #818cf8); }
+    .confidence-pct { font-size: 0.78rem; color: var(--text); font-weight: 600; white-space: nowrap; }
+    .citation { font-size: 0.8rem; color: var(--muted); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .citation a { color: var(--accent-hover); text-decoration: none; }
+    .citation a:hover { text-decoration: underline; }
+    .sep { opacity: 0.4; }
+    .disclaimer { margin-top: 2rem; padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 0.78rem; font-style: italic; color: var(--muted); line-height: 1.6; }
+    .source-status { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .status-tag { font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 20px; border: 1px solid; }
+    .status-ok { color: #86efac; border-color: rgba(134,239,172,0.3); background: rgba(34,197,94,0.08); }
+    .status-warn { color: #fcd34d; border-color: rgba(252,211,77,0.3); background: rgba(234,179,8,0.08); }
+    .status-bad { color: #fca5a5; border-color: rgba(252,165,165,0.3); background: rgba(239,68,68,0.08); }
+
+    /* â”€â”€ All-states table â”€â”€ */
+    #allStatesPanel { display: none; margin-top: 1.5rem; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
+    .panel-title { font-size: 1rem; font-weight: 600; color: var(--text); }
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1rem; text-align: center; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 0.78rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.4rem; }
+    .locations-table { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .table-header { display: grid; grid-template-columns: 2fr 1fr 1fr 80px; gap: 1rem; background: var(--surface2); padding: 0.85rem 1.25rem; font-weight: 600; font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+    .table-row { display: grid; grid-template-columns: 2fr 1fr 1fr 80px; gap: 1rem; padding: 0.9rem 1.25rem; border-bottom: 1px solid var(--border); align-items: center; }
+    .table-row:hover { background: var(--surface2); }
+    .table-row:last-child { border-bottom: none; }
+    .table-score { font-weight: 600; }
+    .view-btn { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 0.3rem 0.7rem; font-size: 0.75rem; cursor: pointer; font-weight: 600; }
+    .view-btn:hover { background: var(--accent-hover); }
+    .tab-row { display: flex; gap: 0.5rem; margin-top: 1.25rem; margin-bottom: 0; flex-wrap: wrap; }
+    .tab-btn { background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 0.45rem 1rem; font-size: 0.88rem; cursor: pointer; font-weight: 500; }
+    .tab-btn.active { background: var(--accent); border-color: var(--accent); }
+    .tab-btn:hover:not(.active) { border-color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>ESG Auditor</h1>
+      <p>Greenwashing Detector â€” AI-powered cross-referencing of sustainability claims vs news</p>
+      <div class="india-badge">India State-wise Analysis</div>
+    </header>
+
+    <!-- Step 1: Search -->
+    <div class="search-card">
+      <input type="text" id="companyInput" placeholder="Enter company name (e.g. Infosys, Tata Motors, Wipro)" autocomplete="off" />
+      <button class="btn" id="searchBtn" onclick="fetchStates()">Search</button>
+    </div>
+
+    <!-- Step 2: State picker -->
+    <div id="statePicker" style="display:none; margin-top:1.25rem;">
+      <div class="state-box">
+        <div class="state-box-header">
+          <div>
+            <div class="state-box-title" id="statePickerTitle">Select a State</div>
+            <div class="state-box-sub">Choose the Indian state to scope the ESG audit and news analysis</div>
+          </div>
+          <div class="tab-row" style="margin-top:0;">
+            <button class="tab-btn active" id="tabSingle" onclick="switchView('single')">Audit by State</button>
+            <button class="tab-btn" id="tabAll" onclick="switchView('all'); loadAllStateAudits();">All States Overview</button>
+          </div>
+        </div>
+        <div id="stateList" style="display:flex; flex-wrap:wrap; gap:0.6rem;"></div>
+        <button class="btn audit-state-btn" id="auditStateBtn" onclick="runAuditForSelected()" disabled style="margin-top:1.25rem; width:100%; padding:0.75rem; font-size:1rem;">
+          Select a state to audit
+        </button>
+      </div>
+    </div>
+
+    <!-- All-states overview panel -->
+    <div id="allStatesPanel" style="display:none; margin-top:1.5rem;">
+
+
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-value" id="statTotal">-</div><div class="stat-label">States Audited</div></div>
+        <div class="stat-card"><div class="stat-value" id="statAvg">-</div><div class="stat-label">Avg Score</div></div>
+        <div class="stat-card"><div class="stat-value" id="statBest">-</div><div class="stat-label">Best Score</div></div>
+        <div class="stat-card"><div class="stat-value" id="statWorst">-</div><div class="stat-label">Worst Score</div></div>
+      </div>
+      <div class="locations-table">
+        <div class="table-header">
+          <div>State</div><div>Score</div><div>Contradictions</div><div>Action</div>
+        </div>
+        <div id="allStatesBody"></div>
+      </div>
+    </div>
+
+    <div id="status"></div>
+
+    <!-- Step 3: Report -->
+    <div id="report" style="display:none; margin-top:2rem;">
+      <button class="back-link" onclick="backToStates()">← Back to states</button>
+      <div class="report-header">
+        <div class="score-circle" id="scoreCircle">
+          <span class="score-num" id="scoreNum">-</span>
+          <span class="score-label" id="scoreLabel">Score</span>
+        </div>
+        <div class="report-meta">
+          <h2 id="reportCompany"></h2>
+          <div id="reportStateTag" style="display:inline-flex;align-items:center;gap:0.3rem;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:0.2rem 0.65rem;font-size:0.78rem;color:var(--accent-hover);margin-top:0.4rem;"></div>
+          <div class="timestamp" id="reportTimestamp"></div>
+          <div class="meta-pills">
+            <span class="pill">Contradictions: <strong id="contradictionCount">0</strong></span>
+            <span class="pill">Confidence: <strong id="overallConfidence">-</strong></span>
+          </div>
+        </div>
+      </div>
+      <div class="source-status" id="sourceStatus"></div>
+      <div class="section-title">Risk Indicators</div>
+      <div class="risk-list" id="riskList"></div>
+      <div class="disclaimer" id="disclaimerText"></div>
+    </div>
+  </div>
+
+  <script>
+    var companyInput = document.getElementById('companyInput');
+    var selectedState = null;
+    var allAuditsData = null;
+
+    companyInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') fetchStates(); });
+
+    function esc(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function safeUrl(str) {
+      if (!str) return '#';
+      var s = String(str).trim();
+      return /^https?:\/\//i.test(s) ? s : '#';
+    }
+    function setStatus(html) { document.getElementById('status').innerHTML = html; }
+    function spinner(msg) {
+      return '<div style="padding:1.5rem 0"><div class="spinner"></div><p class="loading-text">' + msg + '</p></div>';
+    }
+
+    function switchView(view) {
+      document.getElementById('tabSingle').classList.toggle('active', view === 'single');
+      document.getElementById('tabAll').classList.toggle('active', view === 'all');
+      document.getElementById('allStatesPanel').style.display = view === 'all' ? 'block' : 'none';
+      document.getElementById('report').style.display = 'none';
+      document.getElementById('stateList').style.display = view === 'single' ? 'flex' : 'none';
+      document.getElementById('auditStateBtn').style.display = view === 'single' ? 'block' : 'none';
+    }
+
+    function backToStates() {
+      document.getElementById('report').style.display = 'none';
+      document.getElementById('statePicker').style.display = 'block';
+      switchView('single');
+    }
+
+    /* ── Step 1: fetch Indian states ── */
+    async function fetchStates() {
+      var company = companyInput.value.trim();
+      if (!company) { companyInput.focus(); return; }
+
+      selectedState = null;
+      allAuditsData = null;
+      document.getElementById('report').style.display = 'none';
+      document.getElementById('statePicker').style.display = 'none';
+      document.getElementById('allStatesPanel').style.display = 'none';
+      document.getElementById('searchBtn').disabled = true;
+      setStatus(spinner('Finding Indian states where <strong>' + esc(company) + '</strong> operates...'));
+
+      try {
+        var res = await fetch('/locations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ company: company })
+        });
+        var data = await res.json();
+        var locs = data.locations || [];
+        setStatus('');
+        document.getElementById('searchBtn').disabled = false;
+
+        if (locs.length === 0) {
+          var errMsg = data.error ? data.error : 'No Indian state presence found for <strong>' + esc(company) + '</strong>.';
+          setStatus('<div class="error-box">' + errMsg + '</div>');
+          return;
+        }
+        renderStatePicker(company, locs);
+      } catch(e) {
+        setStatus('<div class="error-box">Could not fetch locations: ' + esc(e.message) + '</div>');
+        document.getElementById('searchBtn').disabled = false;
+      }
+    }
+
+    /* ── Render state buttons ── */
+    function renderStatePicker(company, locs) {
+      document.getElementById('statePickerTitle').textContent = company + ' — Select a State';
+      var list = document.getElementById('stateList');
+      list.innerHTML = '';
+      selectedState = null;
+      updateAuditBtn();
+
+      locs.forEach(function(loc) {
+        var btn = document.createElement('button');
+        btn.className = 'state-btn';
+        btn.innerHTML = '📍 ' + esc(loc.state) +
+          (loc.city ? '<span class="state-city">' + esc(loc.city) + '</span>' : '');
+        btn.onclick = function() { selectState(btn, loc); };
+        list.appendChild(btn);
+      });
+
+      document.getElementById('statePicker').style.display = 'block';
+      switchView('single');
+    }
+
+    function selectState(btn, loc) {
+      document.querySelectorAll('.state-btn').forEach(function(b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      selectedState = loc;
+      updateAuditBtn();
+    }
+
+    function updateAuditBtn() {
+      var btn = document.getElementById('auditStateBtn');
+      if (selectedState) {
+        btn.disabled = false;
+        btn.textContent = 'Audit ' + selectedState.state;
+      } else {
+        btn.disabled = true;
+        btn.textContent = 'Select a state to audit';
+      }
+    }
+
+    /* ── Step 2: run audit for selected state ── */
+    function runAuditForSelected() {
+      if (!selectedState) return;
+      var location = selectedState.city
+        ? selectedState.city + ', ' + selectedState.state
+        : selectedState.state;
+      runAudit(location, selectedState.state);
+    }
+
+    async function runAudit(location, stateLabel) {
+      var company = companyInput.value.trim();
+      if (!company) return;
+
+      document.getElementById('report').style.display = 'none';
+      document.getElementById('statePicker').style.display = 'none';
+      document.getElementById('allStatesPanel').style.display = 'none';
+      setStatus(spinner('Auditing <strong>' + esc(company) + '</strong> in <strong>' + esc(stateLabel || location) + '</strong>...'));
+
+      try {
+        var res = await fetch('/audit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ company: company, location: location })
+        });
+        if (res.ok) {
+          var data = await res.json();
+          setStatus('');
+          showReport(data, stateLabel || location);
+        } else if (res.status === 400) {
+          var err = await res.json().catch(function() { return { error: 'Bad request.' }; });
+          setStatus('<div class="error-box">' + esc(err.detail || err.error || 'Invalid request.') + '</div>');
+          document.getElementById('statePicker').style.display = 'block';
+        } else {
+          setStatus('<div class="error-box">Server error (' + res.status + '). Please try again.</div>');
+          document.getElementById('statePicker').style.display = 'block';
+        }
+      } catch(e) {
+        setStatus('<div class="error-box">Network error — could not reach the server.</div>');
+        document.getElementById('statePicker').style.display = 'block';
+      }
+    }
+
+    /* ── Render audit report ── */
+    function showReport(data, stateLabel) {
+      var score = data.true_green_score;
+      var circle = document.getElementById('scoreCircle');
+      circle.className = 'score-circle';
+      if (score === null || score === undefined) {
+        circle.classList.add('score-gray');
+        document.getElementById('scoreNum').textContent = '-';
+        document.getElementById('scoreLabel').textContent = 'No Data';
+      } else {
+        document.getElementById('scoreNum').textContent = Math.round(score);
+        if (score <= 40) { circle.classList.add('score-red'); document.getElementById('scoreLabel').textContent = 'High Risk'; }
+        else if (score <= 70) { circle.classList.add('score-orange'); document.getElementById('scoreLabel').textContent = 'Medium Risk'; }
+        else { circle.classList.add('score-green'); document.getElementById('scoreLabel').textContent = 'Low Risk'; }
+      }
+
+      document.getElementById('reportCompany').textContent = data.company;
+      document.getElementById('reportStateTag').textContent = '📍 ' + (stateLabel || data.state || data.location || '') + ', India';
+      document.getElementById('reportTimestamp').textContent = 'Audited: ' + new Date(data.audit_timestamp).toLocaleString();
+      document.getElementById('contradictionCount').textContent = data.contradiction_count;
+      document.getElementById('overallConfidence').textContent = Math.round(data.overall_confidence * 100) + '%';
+
+      var ss = data.data_source_statuses;
+      var statusEl = document.getElementById('sourceStatus');
+      statusEl.innerHTML = '';
+      if (ss) {
+        var rc = ss.report === 'live' ? 'status-ok' : ss.report === 'cached' ? 'status-warn' : 'status-bad';
+        var nc = ss.news === 'available' ? 'status-ok' : 'status-bad';
+        statusEl.innerHTML =
+          '<span class="status-tag ' + rc + '">ESG Report: ' + ss.report + '</span> ' +
+          '<span class="status-tag ' + nc + '">News: ' + ss.news + '</span>' +
+          (stateLabel ? ' <span class="status-tag status-ok">Scope: ' + esc(stateLabel) + ', India</span>' : '');
+      }
+
+      var list = document.getElementById('riskList');
+      list.innerHTML = '';
+      if (!data.risk_indicators || data.risk_indicators.length === 0) {
+        list.innerHTML = '<p style="color:var(--muted);font-size:0.9rem;">No risk indicators found for this state.</p>';
+      } else {
+        data.risk_indicators.forEach(function(ri) {
+          var badge = ri.gri_category
+            ? '<span class="badge">GRI: ' + esc(ri.gri_category) + '</span>'
+            : ri.tcfd_pillar ? '<span class="badge">TCFD: ' + esc(ri.tcfd_pillar) + '</span>' : '';
+          var pct = Math.round(ri.confidence_score * 100);
+          var cred = ri.source_credibility || 0.5;
+          var credPct = Math.round(cred * 100);
+          var credColor = cred >= 0.8 ? '#22c55e' : cred >= 0.5 ? '#f97316' : '#ef4444';
+          var credLabel = cred >= 0.8 ? 'High' : cred >= 0.5 ? 'Medium' : 'Low — verify manually';
+          var c = ri.citation || {};
+          var verifyUrl = 'https://www.google.com/search?q=' + encodeURIComponent((ri.claim || '') + ' ' + (c.source_name || ''));
+
+          list.insertAdjacentHTML('beforeend',
+            '<div class="risk-card">' +
+              '<div class="risk-card-top"><span class="claim-text">' + esc(ri.claim) + '</span>' + badge + '</div>' +
+              '<p class="evidence-text">' + esc(ri.contradicting_evidence) + '</p>' +
+              '<div class="confidence-row"><span class="confidence-label">Confidence</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div><span class="confidence-pct">' + pct + '%</span></div>' +
+              '<div class="confidence-row"><span class="confidence-label">Source credibility</span><div class="bar-track"><div class="bar-fill" style="width:' + credPct + '%;background:' + credColor + '"></div></div><span class="confidence-pct">' + credLabel + '</span></div>' +
+              '<div class="citation"><span>' + esc(c.source_name) + '</span><span class="sep">·</span>' +
+              '<a href="' + safeUrl(c.url) + '" target="_blank" rel="noopener">View source</a>' +
+              (c.published_date ? '<span class="sep">·</span><span>' + esc(c.published_date) + '</span>' : '') +
+              '<span class="sep">·</span><a href="' + safeUrl(verifyUrl) + '" target="_blank" rel="noopener" style="color:#f97316">Verify on Google</a></div>' +
+            '</div>'
+          );
+        });
+      }
+
+      document.getElementById('disclaimerText').textContent = data.disclaimer;
+      document.getElementById('report').style.display = 'block';
+    }
+
+    /* ── All-states overview ── */
+    async function loadAllStateAudits() {
+      var company = companyInput.value.trim();
+      if (!company) return;
+
+      setStatus(spinner('Loading all state audits for <strong>' + esc(company) + '</strong>...'));
+
+      try {
+        var res = await fetch('/company/' + encodeURIComponent(company) + '/audits');
+        if (res.ok) {
+          allAuditsData = await res.json();
+          setStatus('');
+          renderAllStates();
+        } else {
+          setStatus('<div class="error-box">No cached audits found. Run individual state audits first.</div>');
+          switchView('single');
+        }
+      } catch(e) {
+        setStatus('<div class="error-box">Error: ' + esc(e.message) + '</div>');
+        switchView('single');
+      }
+    }
+
+    function renderAllStates() {
+      if (!allAuditsData) return;
+
+      document.getElementById('statTotal').textContent = allAuditsData.total_locations || 0;
+      document.getElementById('statAvg').textContent = allAuditsData.average_score !== null ? Math.round(allAuditsData.average_score) : '-';
+      var best = allAuditsData.best_performing_location;
+      var worst = allAuditsData.worst_performing_location;
+      document.getElementById('statBest').textContent = best && best.true_green_score !== null ? Math.round(best.true_green_score) : '-';
+      document.getElementById('statWorst').textContent = worst && worst.true_green_score !== null ? Math.round(worst.true_green_score) : '-';
+
+      var tbody = document.getElementById('allStatesBody');
+      tbody.innerHTML = '';
+      var rows = [];
+      var byCountry = allAuditsData.audits_by_country || {};
+      for (var country in byCountry) {
+        for (var state in byCountry[country]) {
+          (byCountry[country][state] || []).forEach(function(a) {
+            rows.push({ state: a.state || state, location: a.location, score: a.true_green_score, contradictions: a.contradiction_count });
+          });
+        }
+      }
+      rows.sort(function(a, b) { return a.state.localeCompare(b.state); });
+
+      if (rows.length === 0) {
+        tbody.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--muted);">No audits cached yet. Run state audits first.</div>';
+        return;
+      }
+
+      rows.forEach(function(row) {
+        var scoreColor = row.score === null ? 'var(--gray)' : row.score <= 40 ? 'var(--red)' : row.score <= 70 ? 'var(--orange)' : 'var(--green)';
+        var locJson = JSON.stringify(row.location || row.state);
+        var stateJson = JSON.stringify(row.state);
+        tbody.insertAdjacentHTML('beforeend',
+          '<div class="table-row">' +
+            '<div>📍 ' + esc(row.state) + '</div>' +
+            '<div class="table-score" style="color:' + scoreColor + '">' + (row.score !== null ? Math.round(row.score) : '-') + '</div>' +
+            '<div>' + (row.contradictions || 0) + '</div>' +
+            '<div><button class="view-btn" onclick="viewStateAudit(' + locJson + ',' + stateJson + ')">View</button></div>' +
+          '</div>'
+        );
+      });
+
+      document.getElementById('allStatesPanel').style.display = 'block';
+    }
+
+    function viewStateAudit(location, stateLabel) {
+      switchView('single');
+      runAudit(location, stateLabel);
+    }
+  </script>
+</body>
+</html>
